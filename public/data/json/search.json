@@ -1,0 +1,48 @@
+{
+  "query": {
+    "bool": {
+      "should": [
+        {
+          "match": {
+            "chengyu": "博大精深"
+          }
+        },
+        {
+          "match": {
+            "chuchu": "博大精深"
+          }
+        },
+        {
+          "match": {
+            "diangu": "博大精深"
+          }
+        },
+        {
+          "match": {
+            "lizi": "博大精深"
+          }
+        },
+        {
+          "match": {
+            "spinyin": "博大精深"
+          }
+        }
+      ]
+    }
+  },
+  "highlight": {
+    "pre_tags": [
+      "<span style = 'color:red'>"
+    ],
+    "post_tags": [
+      "</span>"
+    ],
+    "fields": {
+      "chengyu": {},
+      "chuchu": {},
+      "diangu": {},
+      "lizi": {},
+      "spinyin": {}
+    }
+  }
+}

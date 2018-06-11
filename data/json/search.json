@@ -1,0 +1,12 @@
+{
+  "query": {
+    "match": {
+      "subject": "合肥送餐冲突"
+    }
+  },
+  "highlight": {
+    "pre_tags": ["<span style = 'color:red'>"],
+    "post_tags": ["</span>"],
+    "fields": {"subject": {}}
+  }
+}

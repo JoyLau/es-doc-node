@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import './App.css';
 import {Card, Input} from "antd";
 import $ from "jquery";
+import {swap} from 'react-magic';
+import { StyleSheet, css } from 'aphrodite';
 const Search = Input.Search;
 const API = "http://192.168.10.74:9200/idioms-dictionary/_search";
 
@@ -11,6 +13,7 @@ class App extends Component {
         data:[],
         searchData : {}
     };
+
     componentWillMount() {
     }
 
@@ -70,6 +73,12 @@ class App extends Component {
     }
 
   render() {
+  const styles = StyleSheet.create({
+      swap: {
+          animationName: swap,
+          animationDuration: '0.4s'
+      },
+  });
     return (
       <div className="App">
           <div style={{margin: '30px auto',width:'30%'}}>
@@ -85,14 +94,17 @@ class App extends Component {
               {
                   this.state.data.map((item,index)=>{
                       return (
-                          <Card title={<span>{item.chengyu}  【{item.pinyin}】</span>}
+                          <Card title={<div><div dangerouslySetInnerHTML={{__html: item.chengyu}} /><div style={{marginLeft:'-8px'}}>【{item.pinyin}】</div></div>}
                                 style={{marginTop:30}}
                                 key = {index}
                                 hoverable = {true}
+                                className={css(styles.swap)}
                           >
-                              <p>出处： {item.chuchu}</p>
-                              <p>典故： {item.diangu}</p>
-                              <p>列子:  {item.lizi}</p>
+                              <ul>
+                                  <li><span style={{fontWeight:600}}>出处：</span> {<div dangerouslySetInnerHTML={{__html: item.chuchu}} />}</li>
+                                  <li><span style={{fontWeight:600}}>典故：</span> {<div dangerouslySetInnerHTML={{__html: item.diangu}} />}</li>
+                                  <li><span style={{fontWeight:600}}>列子: </span> {<div dangerouslySetInnerHTML={{__html: item.lizi}} />}</li>
+                              </ul>
                           </Card>
                       )
                   })

@@ -1,4 +1,6 @@
 ## ElasticSearch 环境准备
+![IdiomsDictionary](http://image.joylau.cn/blog/IdiomsDictionary.gif)
+
 1. 安装插件 https://github.com/medcl/elasticsearch-analysis-ik
 2. 测试分词：
 
@@ -201,3 +203,5 @@
     	  }
     	}
 ```
+
+数据导入/导出 ： [elasticdump](https://github.com/taskrabbit/elasticsearch-dump)

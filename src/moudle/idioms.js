@@ -8,7 +8,8 @@ const API = "http://192.168.10.74:9200/idioms-dictionary/_search";
 class Idioms extends Component {
     state = {
         data: [],
-        searchData: {}
+        searchData: {},
+        noDataTips:'Please enter the keywords to search the dioms'
     };
 
     componentWillMount() {
@@ -63,6 +64,7 @@ class Idioms extends Component {
 
                     that.setState({
                         data: data,
+                        noDataTips:'Sorry! no data'
                     })
                 }
             });
@@ -73,28 +75,32 @@ class Idioms extends Component {
         return (
             <div style={{margin: '30px auto', width: '40%'}}>
                 {
-                    this.state.data.map((item, index) => {
-                        return (
-                            <Card title={<div>
-                                <div dangerouslySetInnerHTML={{__html: item.chengyu}}/>
-                                <div style={{marginLeft: '-8px'}}>【{item.pinyin}】</div>
-                            </div>}
-                                  style={{marginTop: 30}}
-                                  key={index}
-                                  hoverable={true}
-                                  className={animations.swap}
-                            >
-                                <ul>
-                                    <li><span style={{fontWeight: 600}}>出处：</span> {<div
-                                        dangerouslySetInnerHTML={{__html: item.chuchu}}/>}</li>
-                                    <li><span style={{fontWeight: 600}}>典故：</span> {<div
-                                        dangerouslySetInnerHTML={{__html: item.diangu}}/>}</li>
-                                    <li><span style={{fontWeight: 600}}>列子: </span> {<div
-                                        dangerouslySetInnerHTML={{__html: item.lizi}}/>}</li>
-                                </ul>
-                            </Card>
-                        )
-                    })
+                    this.state.data.length === 0
+                        ?
+                        <p style={{color:'#00000073',fontSize:"16px",marginTop:'20%',textAlign:'center'}}>{this.state.noDataTips}</p>
+                        :
+                        this.state.data.map((item, index) => {
+                            return (
+                                <Card title={<div>
+                                    <div dangerouslySetInnerHTML={{__html: item.chengyu}}/>
+                                    <div style={{marginLeft: '-8px'}}>【{item.pinyin}】</div>
+                                </div>}
+                                      style={{marginTop: 30}}
+                                      key={index}
+                                      hoverable={true}
+                                      className={animations.swap}
+                                >
+                                    <ul>
+                                        <li><span style={{fontWeight: 600}}>出处：</span> {<div
+                                            dangerouslySetInnerHTML={{__html: item.chuchu}}/>}</li>
+                                        <li><span style={{fontWeight: 600}}>典故：</span> {<div
+                                            dangerouslySetInnerHTML={{__html: item.diangu}}/>}</li>
+                                        <li><span style={{fontWeight: 600}}>列子: </span> {<div
+                                            dangerouslySetInnerHTML={{__html: item.lizi}}/>}</li>
+                                    </ul>
+                                </Card>
+                            )
+                        })
                 }
             </div>
         )

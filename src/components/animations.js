@@ -8,6 +8,7 @@ const styleSheet = StyleSheet.create({
     },
 });
 
+// 引入多个 css 使用逗号隔开
 const animations = {
     swap: css(styleSheet.swap)
 };

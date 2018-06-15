@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {Card} from "antd";
 import $ from "jquery";
-import {animations} from "../components/animations";
+import {animations} from "../components/animation/animations";
 
 const API = "http://192.168.10.74:9200/idioms-dictionary/_search";
 
@@ -9,7 +9,7 @@ class Idioms extends Component {
     state = {
         data: [],
         searchData: {},
-        noDataTips:'Please enter the keywords to search the dioms'
+        noDataTips: 'Please enter the keywords to search the dioms'
     };
 
     componentWillMount() {
@@ -64,7 +64,7 @@ class Idioms extends Component {
 
                     that.setState({
                         data: data,
-                        noDataTips:'Sorry! no data'
+                        noDataTips: 'Sorry! no data'
                     })
                 }
             });
@@ -77,7 +77,12 @@ class Idioms extends Component {
                 {
                     this.state.data.length === 0
                         ?
-                        <p style={{color:'#00000073',fontSize:"16px",marginTop:'20%',textAlign:'center'}}>{this.state.noDataTips}</p>
+                        <p style={{
+                            color: '#00000073',
+                            fontSize: "16px",
+                            marginTop: '20%',
+                            textAlign: 'center'
+                        }}>{this.state.noDataTips}</p>
                         :
                         this.state.data.map((item, index) => {
                             return (

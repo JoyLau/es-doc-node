@@ -1,11 +1,12 @@
 import React, {Component} from 'react';
 import $ from "jquery";
-import {Avatar, Upload, Icon, List, message} from "antd";
+import {Avatar, Upload, Icon, List, message, Button} from "antd";
 
 const Dragger = Upload.Dragger;
-
 class Attachments extends Component {
-
+    state={
+      fileData:[]
+    };
 
     componentWillMount() {
     }
@@ -18,6 +19,8 @@ class Attachments extends Component {
             });
         })
     }
+
+
 
     render() {
         const IconText = ({type, text}) => (
@@ -45,7 +48,9 @@ class Attachments extends Component {
         const props = {
             name: 'file',
             multiple: true,
-            action: '//jsonplaceholder.typicode.com/posts/',
+            action: 'http://192.168.10.74:9200/file_attachment/attachment/1?pipeline=single_attachment&refresh=true&pretty=1',
+            headers:{'content-type': 'application/cbor'},
+            data:{"asd":"21"},
             onChange(info) {
                 const status = info.file.status;
                 if (status !== 'uploading') {
@@ -57,6 +62,17 @@ class Attachments extends Component {
                     message.error(`${info.file.name} file upload failed.`);
                 }
             },
+            beforeUpload: (file) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                const that = this;
+                reader.onload = function(e){
+                    that.setState({
+                        fileData:this.result.split(",")[1]
+                    });
+                    console.info(this.result.split(",")[1])
+                }
+            }
         };
 
         return (

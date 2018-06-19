@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import $ from "jquery";
 import {Avatar, Upload, Icon, List, message} from "antd";
+import es from "../config/es";
 
 const Dragger = Upload.Dragger;
 
@@ -62,6 +63,30 @@ class Attachments extends Component {
                 }
                 if (status === 'done') {
                     message.success(`${info.file.name} file uploaded successfully.`);
+
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = function (e) {
+                        let base64Data = e.target.result.split(",")[1];
+                        es.index({
+                            index: 'myindex', //相当于database
+                            type: 'mytype2',  //相当于table
+                            id: JSON.stringify(new Date().getTime()),// 数据到唯一标示，id存在则为更新，不存在为插入
+                            body: {
+                                title: 'Test 1',
+                                tags: ['y', 'z'],
+                                published: true,
+                                published_at: '2013-01-01',
+                                counter: 1,
+                                name: '999'
+                            }//文档到内容
+                        }, (error, response)=>{
+                            //
+                            console.log(error)
+                            console.log(response)
+                        })
+
+                    }
                 } else if (status === 'error') {
                     message.error(`${info.file.name}: ${info.file.response.error.message}`);
                 }

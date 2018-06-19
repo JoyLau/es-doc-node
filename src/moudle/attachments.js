@@ -2,7 +2,8 @@ import React, {Component} from 'react';
 import $ from "jquery";
 import {Avatar, Upload, Icon, List, message} from "antd";
 import es from "../config/es";
-
+import md5 from 'md5';
+import moment from "moment";
 const Dragger = Upload.Dragger;
 
 class Attachments extends Component {
@@ -50,14 +51,18 @@ class Attachments extends Component {
             name: 'file',
             multiple: false,
             // action: 'http://192.168.10.74:9200/file_attachment/attachment/1?pipeline=single_attachment&refresh=true&pretty=1',
-            action: "/upload",
+            action: "http://192.168.10.74:3000/upload",
             // headers: {'content-type': 'application/cbor'},
             // data: {"asd": "21"},
             onChange(info) {
-                let file = info.fileList[0];
-                const fileSize = (file.size / (1024 * 1024)).toFixed(2);  //获得文件大小
-                const fileName = file.name;  //获得文件名
+                console.info(info)
                 const status = info.file.status;
+                if (status === 'removed') {
+                    return;
+                }
+                let file = info.fileList[info.fileList.length-1];
+                const fileSize = (file.size / (1024)).toFixed(1) + "KB";  //获得文件大小
+                const fileName = file.name;  //获得文件名
                 if (status !== 'uploading') {
                     // console.log(info.file, info.fileList);
                 }
@@ -65,43 +70,49 @@ class Attachments extends Component {
                     message.success(`${info.file.name} file uploaded successfully.`);
 
                     const reader = new FileReader();
-                    reader.readAsDataURL(file);
+                    reader.readAsDataURL(file.originFileObj);
                     reader.onload = function (e) {
                         let base64Data = e.target.result.split(",")[1];
                         es.index({
-                            index: 'myindex', //相当于database
-                            type: 'mytype2',  //相当于table
-                            id: JSON.stringify(new Date().getTime()),// 数据到唯一标示，id存在则为更新，不存在为插入
+                            index: 'file_attachment',
+                            type: 'attachment',
+                            id: md5(base64Data),
+                            refresh: 'true',
+                            pipeline:'single_attachment',
                             body: {
-                                title: 'Test 1',
-                                tags: ['y', 'z'],
-                                published: true,
-                                published_at: '2013-01-01',
-                                counter: 1,
-                                name: '999'
-                            }//文档到内容
+                                filename: fileName,
+                                md5: md5(base64Data),
+                                fileSize: fileSize,
+                                time: moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'),
+                                data: base64Data
+                            }
                         }, (error, response)=>{
-                            //
-                            console.log(error)
-                            console.log(response)
+                            if (error) {
+                                message.error("解析失败!")
+                            }
                         })
-
                     }
                 } else if (status === 'error') {
-                    message.error(`${info.file.name}: ${info.file.response.error.message}`);
+                    message.error(`${info.file.name}: file upload failed.`);
                 }
             },
-            // beforeUpload: (file) => {
-            //     const reader = new FileReader();
-            //     reader.readAsDataURL(file);
-            //     const that = this;
-            //     reader.onload = function (e) {
-            //         that.setState({
-            //             fileData: this.result.split(",")[1]
-            //         });
-            //         console.info(this.result.split(",")[1])
-            //     }
-            // }
+            beforeUpload:(file)=>{
+                const isTxt = file.type === 'text/plain';
+                const isWord = file.type === 'application/msword' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                const isPPT = file.type === 'application/vnd.ms-powerpoint' || file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+                const isExcel = file.type === 'MsoIrmProtector.xls' || file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+                const isPDF = file.type === 'application/pdf';
+                const isHtml = file.type === 'text/html';
+                if (!isTxt && !isWord && !isPPT && !isExcel && !isPDF && !isHtml) {
+                    message.error("文件格式错误!");
+                    return false;
+                }
+                const isLt10m = file.size / 1024 / 1024 < 10;
+                if (!isLt10m){
+                    message.error("文件大于 10M !");
+                    return false;
+                }
+            }
         };
 
         return (

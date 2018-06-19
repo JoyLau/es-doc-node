@@ -20,6 +20,7 @@ const webpack = require('webpack');
 const WebpackDevServer = require('webpack-dev-server');
 const clearConsole = require('react-dev-utils/clearConsole');
 const checkRequiredFiles = require('react-dev-utils/checkRequiredFiles');
+const cors = require('cors');
 const {
     choosePort,
     createCompiler,
@@ -80,7 +81,8 @@ choosePort(HOST, DEFAULT_PORT)
             urls.lanUrlForConfig
         );
         const devServer = new WebpackDevServer(compiler, serverConfig);
-
+        //允许跨域
+        devServer.use(cors());
 
 
         devServer.use("/upload", require("../src/components/apis/upload"));
@@ -91,8 +93,6 @@ choosePort(HOST, DEFAULT_PORT)
                 res.status(502).send({result: 'fail', error: {code: 1001, message: 'File is too big'}});
             }
         });
-
-
 
 
         // Launch WebpackDevServer.

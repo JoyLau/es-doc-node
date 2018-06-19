@@ -15,5 +15,4 @@ router.post('/', multer.single('file'), function(req, res, next) {
         res.send(resJson);
     }
 });
-
 module.exports = router;

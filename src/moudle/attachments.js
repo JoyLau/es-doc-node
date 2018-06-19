@@ -47,33 +47,36 @@ class Attachments extends Component {
 
         const props = {
             name: 'file',
-            multiple: true,
+            multiple: false,
             // action: 'http://192.168.10.74:9200/file_attachment/attachment/1?pipeline=single_attachment&refresh=true&pretty=1',
             action: "/upload",
             // headers: {'content-type': 'application/cbor'},
             // data: {"asd": "21"},
             onChange(info) {
+                let file = info.fileList[0];
+                const fileSize = (file.size / (1024 * 1024)).toFixed(2);  //获得文件大小
+                const fileName = file.name;  //获得文件名
                 const status = info.file.status;
                 if (status !== 'uploading') {
-                    console.log(info.file, info.fileList);
+                    // console.log(info.file, info.fileList);
                 }
                 if (status === 'done') {
                     message.success(`${info.file.name} file uploaded successfully.`);
                 } else if (status === 'error') {
-                    message.error(`${info.file.name} file upload failed.`);
+                    message.error(`${info.file.name}: ${info.file.response.error.message}`);
                 }
             },
-            beforeUpload: (file) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                const that = this;
-                reader.onload = function (e) {
-                    that.setState({
-                        fileData: this.result.split(",")[1]
-                    });
-                    console.info(this.result.split(",")[1])
-                }
-            }
+            // beforeUpload: (file) => {
+            //     const reader = new FileReader();
+            //     reader.readAsDataURL(file);
+            //     const that = this;
+            //     reader.onload = function (e) {
+            //         that.setState({
+            //             fileData: this.result.split(",")[1]
+            //         });
+            //         console.info(this.result.split(",")[1])
+            //     }
+            // }
         };
 
         return (

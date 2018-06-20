@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {Card} from "antd";
 import $ from "jquery";
 import {animations} from "../components/animation/animations";
+import {slideRightReturn} from "react-magic";
 
 const API = "http://192.168.10.74:9200/idioms-dictionary/_search";
 
@@ -73,7 +74,7 @@ class Idioms extends Component {
 
     render() {
         return (
-            <div style={{margin: '30px auto', width: '40%'}}>
+            <div style={{margin: '30px auto', width: '40%'}} className={animations.slideLeftReturn}>
                 {
                     this.state.data.length === 0
                         ?

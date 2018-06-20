@@ -1,14 +1,17 @@
 import React, {Component} from 'react';
-import {Avatar, Upload, Icon, List, message, Divider} from "antd";
+import {Modal, Avatar, Upload, Icon, List, message, Divider} from "antd";
 import es from "../config/es";
 import md5 from 'md5';
 import moment from "moment";
+import {animations} from "../components/animation/animations";
 const Dragger = Upload.Dragger;
+const confirm = Modal.confirm;
 
 class Attachments extends Component {
     state = {
         fileData: [],
         data:[],
+        searchValue:'',
     };
 
     componentWillMount() {
@@ -25,19 +28,37 @@ class Attachments extends Component {
             }
         },(error, response)=>{
             if (error) {
-                message.error("查询失败!")
+                message.error("查询失败!");
+                return;
             }
             if(response){
                 let data = [];
-                response.hits.hits.map((item)=>{
+                response.hits.hits.map((item) => {
                     data.push({
+                        id: item._id,
                         title: item._source.filename,
-                        icon: item => {
-                                let contentType = item._source.attachment.content_type;
-                                if (contentType === 'application/msword' || contentType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-                                    return "file-word"
-                                }
-                        },
+                        icon: (item => {
+                            let contentType = item._source.attachment.content_type;
+                            if (contentType === 'application/msword' || contentType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                                return "file-word"
+                            }
+                            if (contentType.indexOf('text/plain')>-1) {
+                                return "file-text"
+                            }
+                            if (contentType === 'MsoIrmProtector.xls' || contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+                                return "file-excel"
+                            }
+                            if (contentType === 'application/pdf') {
+                                return "file-pdf"
+                            }
+                            if (contentType.indexOf('text/html')>-1) {
+                                return "file"
+                            }
+                            if (contentType === 'application/vnd.ms-powerpoint' || contentType === 'application/vnd.openxmlformats-officedocument.presentationml.presentation') {
+                                return "file-ppt"
+                            }
+                            return "file-unknown";
+                        })(item),
                         time: item._source.time.split(" ")[0],
                         fileSize: item._source.fileSize
                     })
@@ -54,6 +75,9 @@ class Attachments extends Component {
 
     getData(value){
         let that = this;
+        that.setState({
+            searchValue:value,
+        });
         es.search({
             index: 'file_attachment',
             type:'attachment',
@@ -90,12 +114,14 @@ class Attachments extends Component {
             }
         },(error, response)=>{
             if (error) {
-                message.error("查询失败!")
+                message.error("查询失败!");
+                return;
             }
             if(response){
                 let data = [];
                 response.hits.hits.map((item)=>{
                     let obj = {
+                        id: item._id,
                         href: '#',
                         title: <div dangerouslySetInnerHTML={{__html: item._source.filename}}/>,
                         description: <div>{item._source.time}<Divider type="vertical" />{item._source.fileSize}{item._source.attachment && item._source.attachment.author ? <span><Divider type="vertical" />{item._source.attachment.author}</span> : ""}</div>,
@@ -115,9 +141,36 @@ class Attachments extends Component {
         })
     }
 
+    delete(id){
+        let that = this;
+        confirm({
+            title: 'Are you sure delete this attachment?',
+            content: 'This is irreversible',
+            okText: 'Yes',
+            okType: 'danger',
+            cancelText: 'No',
+            onOk() {
+                es.delete({
+                    index: 'file_attachment',
+                    type:'attachment',
+                    id: id,
+                    refresh: true,
+                },(error, response)=>{
+                    if (error) {
+                        message.error("删除失败!");
+                        return;
+                    }
+                    if(response){
+                        message.success("success !");
+                        that.getData(that.state.searchValue)
+                    }
+                })
+            }
+        });
+    }
     render() {
-        const IconText = ({type, text}) => (
-            <span style={{marginRight: 10}}>
+        const IconText = ({type, text,func}) => (
+            <span style={{marginRight: 10}} onClick={func}>
                 <Icon type={type} style={{marginRight: 8}}/>
                 {text}
             </span>
@@ -190,7 +243,7 @@ class Attachments extends Component {
         };
 
         return (
-            <div style={{position: "relative"}}>
+            <div style={{position: "relative"}} className={animations.slideRightReturn}>
                 <List
                     bordered={true}
                     itemLayout="horizontal"
@@ -220,7 +273,7 @@ class Attachments extends Component {
                                 renderItem={item => (
                                     <List.Item
                                         key={item.title}
-                                        actions={[<IconText type="eye-o" text="预览" />, <IconText type="download" text="下载" />]}
+                                        actions={[<IconText type="eye-o" text="预览" />, <IconText type="download" text="下载" />, <IconText type="delete" text="删除" func={()=>{this.delete(item.id)}}/>]}
                                     >
                                         <List.Item.Meta
                                             title={<a href={item.href}>{item.title}</a>}
@@ -236,8 +289,8 @@ class Attachments extends Component {
                                     <Icon type="cloud-upload"/>
                                 </p>
                                 <p className="ant-upload-text">Click or drag file to this area to upload</p>
-                                <p className="ant-upload-hint">Support for a single or bulk upload. Support
-                                    files：TXT,WORD,EXCEL,PPT,PDF,HTML</p>
+                                <p className="ant-upload-hint">Support for a single upload</p>
+                                <p className="ant-upload-hint">Support files：TXT,WORD,EXCEL,PPT,PDF,HTML</p>
                             </Dragger>
                     }
                 </div>

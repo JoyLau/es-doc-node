@@ -5,6 +5,7 @@ import {Idioms} from "./moudle/idioms";
 import {Github} from "./components/github/github";
 import {Button, Icon} from 'antd';
 import {Attachments} from "./moudle/attachments";
+import {animations} from "./components/animation/animations";
 
 const ButtonGroup = Button.Group;
 const Search = Input.Search;
@@ -23,7 +24,7 @@ class App extends Component {
         return (
             <div className="App">
                 <Github/>
-                <div style={{margin: '30px auto', width: '30%'}}>
+                <div style={{margin: '0 auto', paddingTop: 30,width: '30%'}}>
                     <Search
                         placeholder="Search Subject"
                         enterButton="Search"
@@ -35,12 +36,12 @@ class App extends Component {
                 <div style={{margin: '30px auto', width: 260}}>
                     <ButtonGroup>
                         <Button type={this.state.buttonChecked ? "primary" : null} onClick={() => {
-                            this.setState({buttonChecked: !this.state.buttonChecked})
+                            this.setState({buttonChecked: true})
                         }}>
                             <Icon type="credit-card"/>Idioms
                         </Button>
                         <Button type={!this.state.buttonChecked ? "primary" : null} onClick={() => {
-                            this.setState({buttonChecked: !this.state.buttonChecked})
+                            this.setState({buttonChecked: false})
                         }}>
                             Attachments<Icon type="file-text"/>
                         </Button>

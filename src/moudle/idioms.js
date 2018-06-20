@@ -1,10 +1,8 @@
 import React, {Component} from 'react';
 import {Card} from "antd";
-import $ from "jquery";
 import {animations} from "../components/animation/animations";
-import {slideRightReturn} from "react-magic";
-
-const API = "http://192.168.10.74:9200/idioms-dictionary/_search";
+import es from "../config/es";
+import {message} from "antd/lib/index";
 
 class Idioms extends Component {
     state = {
@@ -17,32 +15,70 @@ class Idioms extends Component {
     }
 
     componentDidMount() {
-        let that = this;
-        $.getJSON("../data/json/search.json", function (data) {
-            that.setState({
-                searchData: data
-            });
-        })
     }
 
     getData(value) {
         let that = this;
         if (value.toString().trim()) {
-            let searchData = this.state.searchData;
-            searchData.query.bool.should[0].match.chengyu = value;
-            searchData.query.bool.should[1].match.chuchu = value;
-            searchData.query.bool.should[2].match.diangu = value;
-            searchData.query.bool.should[3].match.lizi = value;
-            searchData.query.bool.should[4].match.spinyin = value;
-            $.ajax({
-                url: API,
-                type: 'POST',
-                contentType: 'application/json; charset=UTF-8',
-                dataType: 'json',
-                data: JSON.stringify(searchData),
-                success: function (res, status, xhr) {
+            es.search({
+                index: 'idioms-dictionary',
+                type:'idioms',
+                body:{
+                    "query": {
+                        "bool": {
+                            "should": [
+                                {
+                                    "match": {
+                                        "chengyu": value
+                                    }
+                                },
+                                {
+                                    "match": {
+                                        "chuchu": value
+                                    }
+                                },
+                                {
+                                    "match": {
+                                        "diangu": value
+                                    }
+                                },
+                                {
+                                    "match": {
+                                        "lizi": value
+                                    }
+                                },
+                                {
+                                    "match": {
+                                        "spinyin": value
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "highlight": {
+                        "pre_tags": [
+                            "<span style = 'color:red'>"
+                        ],
+                        "post_tags": [
+                            "</span>"
+                        ],
+                        "fields": {
+                            "chengyu": {},
+                            "chuchu": {},
+                            "diangu": {},
+                            "lizi": {},
+                            "spinyin": {}
+                        }
+                    }
+                }
+            },(error, response)=>{
+                if (error) {
+                    message.error("查询失败!");
+                    return;
+                }
+                if(response){
                     let data = [];
-                    res.hits.hits.map((item) => {
+                    response.hits.hits.map((item) => {
                         let obj = item._source;
                         if (item.highlight.chengyu) {
                             obj.chengyu = item.highlight.chengyu

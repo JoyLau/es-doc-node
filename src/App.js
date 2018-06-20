@@ -1,11 +1,10 @@
 import React, {Component} from 'react';
-import './App.css';
+import './App.less';
 import {Input} from "antd";
 import {Idioms} from "./moudle/idioms";
 import {Github} from "./components/github/github";
 import {Button, Icon} from 'antd';
 import {Attachments} from "./moudle/attachments";
-import {animations} from "./components/animation/animations";
 
 const ButtonGroup = Button.Group;
 const Search = Input.Search;

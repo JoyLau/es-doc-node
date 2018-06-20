@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
-import $ from "jquery";
-import {Avatar, Upload, Icon, List, message} from "antd";
+import {Avatar, Upload, Icon, List, message, Divider} from "antd";
 import es from "../config/es";
 import md5 from 'md5';
 import moment from "moment";
@@ -8,21 +7,113 @@ const Dragger = Upload.Dragger;
 
 class Attachments extends Component {
     state = {
-        fileData: []
+        fileData: [],
+        data:[],
     };
 
     componentWillMount() {
-    }
-
-    componentDidMount() {
         let that = this;
-        $.getJSON("../data/json/search.json", function (data) {
-            that.setState({
-                searchData: data
-            });
+        es.search({
+            index: 'file_attachment',
+            type:'attachment',
+            body:{
+                "_source": [ "filename", "fileSize", "time","attachment.content_type"],
+                "from": 0,
+                "size":5,
+                "query": {
+                }
+            }
+        },(error, response)=>{
+            if (error) {
+                message.error("查询失败!")
+            }
+            if(response){
+                let data = [];
+                response.hits.hits.map((item)=>{
+                    data.push({
+                        title: item._source.filename,
+                        icon: item => {
+                                let contentType = item._source.attachment.content_type;
+                                if (contentType === 'application/msword' || contentType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                                    return "file-word"
+                                }
+                        },
+                        time: item._source.time.split(" ")[0],
+                        fileSize: item._source.fileSize
+                    })
+                });
+                that.setState({
+                    fileData:data
+                })
+            }
         })
     }
 
+    componentDidMount() {
+    }
+
+    getData(value){
+        let that = this;
+        es.search({
+            index: 'file_attachment',
+            type:'attachment',
+            body:{
+                "_source": [ "filename", "fileSize", "time","attachment.author" ],
+                "query": {
+                    "bool": {
+                        "should": [
+                            {
+                                "match": {
+                                    "attachment.content": value
+                                }
+                            },
+                            {
+                                "match": {
+                                    "filename": value
+                                }
+                            }
+                        ]
+                    }
+                },
+                "highlight": {
+                    "pre_tags": [
+                        "<span style = 'color:red'>"
+                    ],
+                    "post_tags": [
+                        "</span>"
+                    ],
+                    "fields": {
+                        "attachment.content": {},
+                        "filename": {}
+                    }
+                }
+            }
+        },(error, response)=>{
+            if (error) {
+                message.error("查询失败!")
+            }
+            if(response){
+                let data = [];
+                response.hits.hits.map((item)=>{
+                    let obj = {
+                        href: '#',
+                        title: <div dangerouslySetInnerHTML={{__html: item._source.filename}}/>,
+                        description: <div>{item._source.time}<Divider type="vertical" />{item._source.fileSize}{item._source.attachment && item._source.attachment.author ? <span><Divider type="vertical" />{item._source.attachment.author}</span> : ""}</div>,
+                    };
+                    if (item.highlight.filename) {
+                        obj.title = <div dangerouslySetInnerHTML={{__html: item.highlight.filename}}/>;
+                    }
+                    if (item.highlight["attachment.content"]) {
+                        obj.content = <div dangerouslySetInnerHTML={{__html: item.highlight["attachment.content"]}}/>;
+                    }
+                    data.push(obj)
+                });
+                that.setState({
+                    data:data
+                })
+            }
+        })
+    }
 
     render() {
         const IconText = ({type, text}) => (
@@ -32,30 +123,13 @@ class Attachments extends Component {
             </span>
         );
 
-        const data = [
-            {
-                title: 'Ant Design Title 1',
-            },
-            {
-                title: 'Ant Design Title 2',
-            },
-            {
-                title: 'Ant Design Title 3',
-            },
-            {
-                title: 'Ant Design Title 4',
-            },
-        ];
-
         const props = {
             name: 'file',
             multiple: false,
             // action: 'http://192.168.10.74:9200/file_attachment/attachment/1?pipeline=single_attachment&refresh=true&pretty=1',
             action: "http://192.168.10.74:3000/upload",
             // headers: {'content-type': 'application/cbor'},
-            // data: {"asd": "21"},
             onChange(info) {
-                console.info(info)
                 const status = info.file.status;
                 if (status === 'removed') {
                     return;
@@ -120,33 +194,52 @@ class Attachments extends Component {
                 <List
                     bordered={true}
                     itemLayout="horizontal"
-                    dataSource={data}
-                    style={{position: "absolute", right: 5, top: 10, zIndex: 10, maxWidth: '30%'}}
+                    dataSource={this.state.fileData}
+                    style={{position: "absolute", right: 5, top: 10, zIndex: 10, maxWidth: '28%'}}
                     renderItem={item => (
                         <List.Item
                             actions={[<a>预览</a>, <a>下载</a>]}
                         >
                             <List.Item.Meta
-                                avatar={<Avatar shape="square" size="large" icon="file-word"/>}
+                                avatar={<Avatar shape="square" size="large" icon={item.icon}/>}
                                 title={<a href="https://ant.design">{item.title}</a>}
-                                description={<div><p>2018-06-14 10:53:49</p>
-                                    <div>{[<IconText type="eye-o" key="1" text="156"/>,
-                                        <IconText type="download" key="2" text="3"/>]}</div>
-                                </div>}
+                                description={<div>{[<IconText type="clock-circle-o" key="1" text={item.time}/>, <IconText type="link" key="2" text={item.fileSize}/>]}</div>}
                             />
                         </List.Item>
                     )}
                 />
 
                 <div style={{margin: '30px auto', width: '40%', height: 400}}>
-                    <Dragger {...props}>
-                        <p className="ant-upload-drag-icon">
-                            <Icon type="cloud-upload"/>
-                        </p>
-                        <p className="ant-upload-text">Click or drag file to this area to upload</p>
-                        <p className="ant-upload-hint">Support for a single or bulk upload. Support
-                            files：TXT,WORD,EXCEL,PPT,PDF,HTML</p>
-                    </Dragger>
+                    {
+                        this.state.data.length !== 0
+                            ?
+                            <List
+                                itemLayout="vertical"
+                                size="large"
+                                dataSource={this.state.data}
+                                renderItem={item => (
+                                    <List.Item
+                                        key={item.title}
+                                        actions={[<IconText type="eye-o" text="预览" />, <IconText type="download" text="下载" />]}
+                                    >
+                                        <List.Item.Meta
+                                            title={<a href={item.href}>{item.title}</a>}
+                                            description={item.description}
+                                        />
+                                        {item.content}
+                                    </List.Item>
+                                )}
+                            />
+                            :
+                            <Dragger {...props}>
+                                <p className="ant-upload-drag-icon">
+                                    <Icon type="cloud-upload"/>
+                                </p>
+                                <p className="ant-upload-text">Click or drag file to this area to upload</p>
+                                <p className="ant-upload-hint">Support for a single or bulk upload. Support
+                                    files：TXT,WORD,EXCEL,PPT,PDF,HTML</p>
+                            </Dragger>
+                    }
                 </div>
             </div>
         )

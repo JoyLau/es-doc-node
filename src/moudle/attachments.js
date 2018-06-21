@@ -23,6 +23,9 @@ class Attachments extends Component {
                 "_source": [ "filename", "fileSize", "time","attachment.content_type"],
                 "from": 0,
                 "size":5,
+                "sort": [
+                    {"time": { "order": "asc"}}
+                ],
                 "query": {
                 }
             }
@@ -122,6 +125,7 @@ class Attachments extends Component {
                 response.hits.hits.map((item)=>{
                     let obj = {
                         id: item._id,
+                        filename: item._source.filename,
                         href: '#',
                         title: <div dangerouslySetInnerHTML={{__html: item._source.filename}}/>,
                         description: <div>{item._source.time}<Divider type="vertical" />{item._source.fileSize}{item._source.attachment && item._source.attachment.author ? <span><Divider type="vertical" />{item._source.attachment.author}</span> : ""}</div>,
@@ -168,6 +172,14 @@ class Attachments extends Component {
             }
         });
     }
+
+    download(filename){
+        const element = window.document.createElement("iframe");
+        element.src = "http://192.168.10.74/" + filename;
+        element.style.display = "none";
+        document.body.appendChild(element);
+    }
+
     render() {
         const IconText = ({type, text,func}) => (
             <span style={{marginRight: 10}} onClick={func}>
@@ -251,11 +263,11 @@ class Attachments extends Component {
                     style={{position: "absolute", right: 5, top: 10, zIndex: 10, maxWidth: '28%'}}
                     renderItem={item => (
                         <List.Item
-                            actions={[<a>预览</a>, <a>下载</a>]}
+                            actions={[<a>预览</a>, <a onClick={()=>this.download(item.title)}>下载</a>]}
                         >
                             <List.Item.Meta
                                 avatar={<Avatar shape="square" size="large" icon={item.icon}/>}
-                                title={<a href="https://ant.design">{item.title}</a>}
+                                title={<a href="#">{item.title}</a>}
                                 description={<div>{[<IconText type="clock-circle-o" key="1" text={item.time}/>, <IconText type="link" key="2" text={item.fileSize}/>]}</div>}
                             />
                         </List.Item>
@@ -273,7 +285,7 @@ class Attachments extends Component {
                                 renderItem={item => (
                                     <List.Item
                                         key={item.title}
-                                        actions={[<IconText type="eye-o" text="预览" />, <IconText type="download" text="下载" />, <IconText type="delete" text="删除" func={()=>{this.delete(item.id)}}/>]}
+                                        actions={[<IconText type="eye-o" text="预览" />, <IconText type="download" text="下载" func={()=>{this.download(item.filename)}}/>, <IconText type="delete" text="删除" func={()=>{this.delete(item.id)}}/>]}
                                     >
                                         <List.Item.Meta
                                             title={<a href={item.href}>{item.title}</a>}

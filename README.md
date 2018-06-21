@@ -2,7 +2,8 @@
 
 ![IdiomsDictionary](http://image.joylau.cn/blog/IdiomsDictionary.gif)
 ![IdiomsDictionary](http://image.joylau.cn/blog/idioms.gif)
-![IdiomsDictionary](http://image.joylau.cn/blog/attachment.gif)
+
+图片太大 ： http://image.joylau.cn/blog/attachment.gif
 
 ## 中文分词实现
 

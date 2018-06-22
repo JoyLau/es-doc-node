@@ -15,6 +15,13 @@ class Attachments extends Component {
     };
 
     componentWillMount() {
+        this.getFileList();
+    }
+
+    componentDidMount() {
+    }
+
+    getFileList(){
         let that = this;
         es.search({
             index: 'file_attachment',
@@ -71,9 +78,6 @@ class Attachments extends Component {
                 })
             }
         })
-    }
-
-    componentDidMount() {
     }
 
     getData(value){
@@ -181,6 +185,7 @@ class Attachments extends Component {
     }
 
     render() {
+        let that = this;
         const IconText = ({type, text,func}) => (
             <span style={{marginRight: 10}} onClick={func}>
                 <Icon type={type} style={{marginRight: 8}}/>
@@ -227,7 +232,11 @@ class Attachments extends Component {
                             }
                         }, (error, response)=>{
                             if (error) {
-                                message.error("解析失败!")
+                                message.error("解析失败!");
+                                return;
+                            }
+                            if (response) {
+                                that.getFileList();
                             }
                         })
                     }

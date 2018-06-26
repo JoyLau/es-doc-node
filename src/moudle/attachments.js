@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Modal, Avatar, Upload, Icon, List, message, Divider} from "antd";
+import {Modal, Avatar, Upload, Icon, List, message, Divider, Badge} from "antd";
 import es from "../config/es";
 import md5 from 'md5';
 import moment from "moment";
@@ -289,6 +289,7 @@ class Attachments extends Component {
                     bordered={true}
                     itemLayout="horizontal"
                     dataSource={this.state.fileData}
+                    header={<Badge count={5}><span style={{marginRight:10}}>最新文件</span></Badge>}
                     style={{position: "absolute", right: 5, top: 10, zIndex: 10, maxWidth: '28%'}}
                     renderItem={item => (
                         <List.Item

@@ -4,6 +4,9 @@ import es from "../config/es";
 import md5 from 'md5';
 import moment from "moment";
 import {animations} from "../components/animation/animations";
+import serviceConfig from "../config/servers";
+
+
 const Dragger = Upload.Dragger;
 const confirm = Modal.confirm;
 
@@ -49,13 +52,13 @@ class Attachments extends Component {
                         title: item._source.filename,
                         icon: (item => {
                             let contentType = item._source.attachment.content_type;
-                            if (contentType === 'application/msword' || contentType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                            if (contentType.indexOf("word")>-1 || contentType.indexOf("doc")>-1 || contentType.indexOf("docx")>-1) {
                                 return "file-word"
                             }
                             if (contentType.indexOf('text/plain')>-1) {
                                 return "file-text"
                             }
-                            if (contentType === 'MsoIrmProtector.xls' || contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+                            if (contentType.indexOf("sheet")>-1 || contentType.indexOf("excel")>-1) {
                                 return "file-excel"
                             }
                             if (contentType === 'application/pdf') {
@@ -64,7 +67,7 @@ class Attachments extends Component {
                             if (contentType.indexOf('text/html')>-1) {
                                 return "file"
                             }
-                            if (contentType === 'application/vnd.ms-powerpoint' || contentType === 'application/vnd.openxmlformats-officedocument.presentationml.presentation') {
+                            if (contentType.indexOf("powerpoint")>-1 || contentType.indexOf("ppt")>-1) {
                                 return "file-ppt"
                             }
                             return "file-unknown";
@@ -179,9 +182,20 @@ class Attachments extends Component {
 
     download(filename){
         const element = window.document.createElement("iframe");
-        element.src = "http://192.168.10.74/" + filename;
+        element.src = serviceConfig.nginxService + filename;
         element.style.display = "none";
         document.body.appendChild(element);
+    }
+
+    /*预览*/
+    preview(filename){
+        const element = window.document.createElement("a");
+        element.href = serviceConfig.officeService + "office/preview/" + filename;
+        element.target = "_blank";
+        element.download=filename;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
     }
 
     render() {
@@ -197,7 +211,7 @@ class Attachments extends Component {
             name: 'file',
             multiple: false,
             // action: 'http://192.168.10.74:9200/file_attachment/attachment/1?pipeline=single_attachment&refresh=true&pretty=1',
-            action: "http://192.168.10.74:3000/upload",
+            action: serviceConfig.uploadService + "upload",
             // headers: {'content-type': 'application/cbor'},
             onChange(info) {
                 const status = info.file.status;
@@ -246,9 +260,9 @@ class Attachments extends Component {
             },
             beforeUpload:(file)=>{
                 const isTxt = file.type === 'text/plain';
-                const isWord = file.type === 'application/msword' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-                const isPPT = file.type === 'application/vnd.ms-powerpoint' || file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
-                const isExcel = file.type === 'MsoIrmProtector.xls' || file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+                const isWord = (file.type.indexOf("word") > -1 || file.type.indexOf("doc") > -1 || file.type.indexOf("docx") > -1);
+                const isPPT = (file.type.indexOf("powerpoint")>-1 || file.type.indexOf("ppt")>-1);
+                const isExcel = (file.type.indexOf("sheet")>-1 || file.type.indexOf("excel")>-1);
                 const isPDF = file.type === 'application/pdf';
                 const isHtml = file.type === 'text/html';
                 if (!isTxt && !isWord && !isPPT && !isExcel && !isPDF && !isHtml) {
@@ -272,7 +286,7 @@ class Attachments extends Component {
                     style={{position: "absolute", right: 5, top: 10, zIndex: 10, maxWidth: '28%'}}
                     renderItem={item => (
                         <List.Item
-                            actions={[<a>预览</a>, <a onClick={()=>this.download(item.title)}>下载</a>]}
+                            actions={[<a onClick={()=>this.preview(item.title)}>预览</a>, <a onClick={()=>this.download(item.title)}>下载</a>]}
                         >
                             <List.Item.Meta
                                 avatar={<Avatar shape="square" size="large" icon={item.icon}/>}
@@ -294,7 +308,7 @@ class Attachments extends Component {
                                 renderItem={item => (
                                     <List.Item
                                         key={item.title}
-                                        actions={[<IconText type="eye-o" text="预览" />, <IconText type="download" text="下载" func={()=>{this.download(item.filename)}}/>, <IconText type="delete" text="删除" func={()=>{this.delete(item.id)}}/>]}
+                                        actions={[<IconText type="eye-o" text="预览" func={()=>{this.preview(item.filename)}}/>, <IconText type="download" text="下载" func={()=>{this.download(item.filename)}}/>, <IconText type="delete" text="删除" func={()=>{this.delete(item.id)}}/>]}
                                     >
                                         <List.Item.Meta
                                             title={<a href={item.href}>{item.title}</a>}

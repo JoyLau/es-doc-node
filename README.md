@@ -325,7 +325,8 @@
             location / {
                 root   html;
     			if ($request_filename ~* ^.*?.(txt|doc|pdf|rar|gz|zip|docx|exe|xlsx|ppt|pptx|jpg|png|html|xml)$){
-                            add_header Content-Disposition attachment;                  
+                            add_header Content-Disposition attachment; 
+                            add_header Content-Type 'APPLICATION/OCTET-STREAM';                 
                      } 
                 index  index.html index.htm;
             }
@@ -366,5 +367,13 @@
 
 重点是 : 
 if ($request_filename ~* ^.*?.(txt|doc|pdf|rar|gz|zip|docx|exe|xlsx|ppt|pptx|jpg|png|html|xml)$){
-      add_header Content-Disposition attachment;                  
+      add_header Content-Disposition attachment;  
+      add_header Content-Type 'APPLICATION/OCTET-STREAM';                
    } 
+或者也可以这样处理：
+if ($args ~* "target=download") {
+      add_header Content-Disposition 'attachment';
+      add_header Content-Type 'APPLICATION/OCTET-STREAM';
+ }
+
+这样的话只要在 get请求加上 target=download 参数就可以下载了。

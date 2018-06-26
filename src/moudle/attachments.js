@@ -50,6 +50,7 @@ class Attachments extends Component {
                     data.push({
                         id: item._id,
                         title: item._source.filename,
+                        contentType: item._source.attachment.content_type,
                         icon: (item => {
                             let contentType = item._source.attachment.content_type;
                             if (contentType.indexOf("word")>-1 || contentType.indexOf("doc")>-1 || contentType.indexOf("docx")>-1) {
@@ -92,7 +93,7 @@ class Attachments extends Component {
             index: 'file_attachment',
             type:'attachment',
             body:{
-                "_source": [ "filename", "fileSize", "time","attachment.author" ],
+                "_source": [ "filename", "fileSize", "time","attachment.author","attachment.content_type" ],
                 "query": {
                     "bool": {
                         "should": [
@@ -134,6 +135,7 @@ class Attachments extends Component {
                         id: item._id,
                         filename: item._source.filename,
                         href: '#',
+                        contentType: item._source.attachment.content_type,
                         title: <div dangerouslySetInnerHTML={{__html: item._source.filename}}/>,
                         description: <div>{item._source.time}<Divider type="vertical" />{item._source.fileSize}{item._source.attachment && item._source.attachment.author ? <span><Divider type="vertical" />{item._source.attachment.author}</span> : ""}</div>,
                     };
@@ -182,15 +184,19 @@ class Attachments extends Component {
 
     download(filename){
         const element = window.document.createElement("iframe");
-        element.src = serviceConfig.nginxService + filename;
+        element.src = serviceConfig.nginxService + filename + "?target=download";
         element.style.display = "none";
         document.body.appendChild(element);
     }
 
     /*预览*/
-    preview(filename){
+    preview(filename,contentType){
         const element = window.document.createElement("a");
-        element.href = serviceConfig.officeService + "office/preview/" + filename;
+        if (contentType === 'application/pdf') {
+            element.href = serviceConfig.nginxService + filename;
+        }else{
+            element.href = serviceConfig.officeService + "office/preview/" + filename;
+        }
         element.target = "_blank";
         element.download=filename;
         document.body.appendChild(element);
@@ -286,7 +292,7 @@ class Attachments extends Component {
                     style={{position: "absolute", right: 5, top: 10, zIndex: 10, maxWidth: '28%'}}
                     renderItem={item => (
                         <List.Item
-                            actions={[<a onClick={()=>this.preview(item.title)}>预览</a>, <a onClick={()=>this.download(item.title)}>下载</a>]}
+                            actions={[<a onClick={()=>this.preview(item.title,item.contentType)}>预览</a>, <a onClick={()=>this.download(item.title)}>下载</a>]}
                         >
                             <List.Item.Meta
                                 avatar={<Avatar shape="square" size="large" icon={item.icon}/>}
@@ -308,7 +314,7 @@ class Attachments extends Component {
                                 renderItem={item => (
                                     <List.Item
                                         key={item.title}
-                                        actions={[<IconText type="eye-o" text="预览" func={()=>{this.preview(item.filename)}}/>, <IconText type="download" text="下载" func={()=>{this.download(item.filename)}}/>, <IconText type="delete" text="删除" func={()=>{this.delete(item.id)}}/>]}
+                                        actions={[<IconText type="eye-o" text="预览" func={()=>{this.preview(item.filename,item.contentType)}}/>, <IconText type="download" text="下载" func={()=>{this.download(item.filename)}}/>, <IconText type="delete" text="删除" func={()=>{this.delete(item.id)}}/>]}
                                     >
                                         <List.Item.Meta
                                             title={<a href={item.href}>{item.title}</a>}
